@@ -1,6 +1,6 @@
 # Release Readiness
 
-ActionLens is not release-ready until the core loop is verified on real Android and iOS devices with production-like Supabase, OCR, and AI credentials.
+ActionLens is not release-ready until the core loop is verified in production-like browsers with Supabase and the self-hosted local OCR assets.
 
 ## Required gates
 
@@ -9,12 +9,12 @@ ActionLens is not release-ready until the core loop is verified on real Android 
 - Email verification and password-reset links open the installed app.
 - Camera, photo, PDF, paste-text, offline restart, and slow-network paths pass.
 - Two-account RLS and storage isolation tests pass.
-- AI prompt-injection and malformed-output tests pass.
+- Local OCR accuracy, untrusted-text, and malformed-output tests pass.
 - Notification timezone, cancellation, and completion behavior pass.
 - Individual document deletion and account deletion are verified end-to-end.
 - Accessibility audit passes with large text and screen reader.
-- Privacy policy accurately names processing providers and retention behavior.
+- Privacy policy accurately describes browser-local processing and Supabase retention behavior.
 
 ## Build configuration
 
-Use separate Supabase projects and provider credentials for development, preview, and production. EAS environment secrets hold only build-time public configuration; Edge Function secrets hold all privileged keys.
+Use separate Supabase projects for development, preview, and production. The website requires only the public Supabase URL and anonymous/publishable key; no AI or OCR provider credentials are configured.

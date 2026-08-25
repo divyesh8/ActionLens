@@ -2,17 +2,17 @@
 
 **Turn anything important into action.**
 
-ActionLens is an Expo mobile app that securely imports documents, extracts evidence-backed obligations, asks the user to verify every finding, and persists a practical action plan with deadlines and reminders. The source document always remains authoritative; AI findings are drafts until the user confirms them.
+ActionLens is an Expo app that securely imports documents, extracts evidence-backed obligations, asks the user to verify every finding, and persists a practical action plan with deadlines and reminders. The source document always remains authoritative; locally extracted findings are drafts until the user confirms them.
 
 ## Architecture
 
-The Expo SDK 57 client uses Expo Router, TypeScript, TanStack Query, Zustand, SecureStore, SQLite, and local notifications. Supabase provides email authentication, private Storage, PostgreSQL with RLS, transactional verification RPCs, and JWT-protected Edge Functions. The server-side OCR and analysis adapters call the OpenAI Responses API through strict Zod-derived schemas; privileged keys never enter the app bundle.
+The Expo SDK 57 client uses Expo Router, TypeScript, TanStack Query, Zustand, SecureStore, SQLite, and local notifications. On the website, self-hosted Tesseract.js and PDF.js read documents in the browser; a deterministic local analyzer produces schema-validated findings without an AI/model API key. Supabase provides email authentication, private Storage, PostgreSQL with RLS, transactional verification RPCs, and JWT-protected deletion functions.
 
 The core flow is:
 
 ```text
-camera/photo/PDF/text -> private upload -> durable processing job
-  -> OCR pages/evidence -> structured analysis -> user verification
+camera/photo/PDF/text -> browser-local OCR and analysis -> private sync
+  -> OCR pages/evidence -> structured draft -> user verification
   -> transactional plan -> reminders, next actions, history, and search
 ```
 
@@ -22,7 +22,7 @@ camera/photo/PDF/text -> private upload -> durable processing job
 pnpm install
 ```
 
-Copy `.env.example` to `.env.local`, configure the public Supabase values, apply the migration, set the server-only Edge Function secrets, and deploy the three functions. The exact commands and Auth redirect configuration are in [SETUP.md](./SETUP.md).
+Copy `.env.example` to `.env.local`, configure the two public Supabase values, apply the migrations, and deploy the two deletion functions. No OpenAI/model/OCR API key is needed. The exact commands and Auth redirect configuration are in [SETUP.md](./SETUP.md).
 
 ## Run and test
 

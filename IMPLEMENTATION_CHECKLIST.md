@@ -52,15 +52,17 @@ This checklist records verified repository state. A checked item means its code 
 
 ## Phase 5 — OCR
 
-- [x] Replaceable OCR contract
-- [x] Server-side OCR adapter in Edge Function
+- [x] Browser-local Tesseract.js OCR
+- [x] Self-hosted worker, WASM cores, and English language data
+- [x] PDF.js embedded-text extraction and scanned-page rendering
 - [x] Page/block evidence persistence
 
-## Phase 6 — AI engine
+## Phase 6 — Local analysis engine
 
 - [x] Strict shared extraction schema
-- [x] Server-side provider adapter and prompt boundary
-- [x] One bounded schema-regeneration retry and recoverable errors
+- [x] Deterministic local deadline/action/requirement/payment/contact rules
+- [x] No AI/model/OCR API key or paid provider request
+- [x] Recoverable local format, memory, and OCR errors
 - [x] Confidence/conflict handling
 
 ## Phase 7 — Verification

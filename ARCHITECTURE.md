@@ -2,25 +2,22 @@
 
 ## Product boundary
 
-ActionLens converts an uploaded document into a user-verified action plan. The source document remains authoritative. AI output is never promoted to an obligation, reminder, or deadline until the user confirms it.
+ActionLens converts an uploaded document into a user-verified action plan. The source document remains authoritative. Locally extracted output is never promoted to an obligation, reminder, or deadline until the user confirms it.
 
 ## System overview
 
 ```text
 Expo app
+  -> browser-local Tesseract.js OCR + PDF.js text/page rendering
+  -> deterministic, schema-validated local analysis
   -> Supabase Auth (email/password, verified session)
   -> private Supabase Storage (originals and previews)
   -> Postgres + RLS (documents, evidence, plans, reminders, history)
-  -> Edge Function: process-document
-       -> OCR provider
-       -> strict analysis provider
-       -> Zod-compatible JSON validation
-       -> awaiting_verification result
   -> Expo local notifications (MVP)
   -> SQLite offline cache + durable pending-import queue
 ```
 
-Privileged provider keys and the Supabase service-role key exist only in Edge Function secrets. The mobile client receives only the Supabase URL and anonymous publishable key.
+There are no AI, OCR, or model API keys. The client receives only the public Supabase URL and anonymous/publishable key. Supabase remains the authenticated persistence and sync boundary; document understanding happens on the user’s device.
 
 ## Mobile architecture
 
@@ -45,8 +42,7 @@ src/
     settings/
   services/
     supabase/              # typed client and persistence
-    ai/                    # provider contracts and schemas
-    ocr/                   # provider contracts
+    ai/                    # local OCR/analysis and schemas
     notifications/
     storage/
     analytics/
@@ -68,7 +64,7 @@ Rules:
 
 ## Trust boundary
 
-Document content is untrusted data. It cannot change system instructions, select tools, or authorize operations. Only validated structured output is written. Each extracted item requires evidence (`source_text`, page, optional bounding geometry) and a confidence category.
+Document content is untrusted data. It is treated only as text input to deterministic rules and cannot select tools or authorize operations. Only validated structured output is written. Each extracted item requires evidence (`source_text`, page, optional bounding geometry) and a confidence category.
 
 ## Processing state machine
 
@@ -108,4 +104,4 @@ Product events use a closed, Zod-validated metadata contract and contain only co
 
 ## Future extension points
 
-OCR and document analysis are provider interfaces. Share extensions, inbound email, push delivery, semantic search, subscriptions, and additional user segments can be added without changing the core document/obligation model.
+Additional local languages and better on-device rules can be added without changing the core document/obligation model. Share extensions, inbound email, push delivery, semantic search, subscriptions, and additional user segments remain future work.

@@ -6,7 +6,7 @@ import { requireSupabaseClient } from '@/services/supabase/client';
 const eventSchemas = {
   document_import_started: z.object({ sourceKind: z.enum(['camera', 'photo', 'file', 'text']) }),
   document_import_completed: z.object({ outcome: z.enum(['processing', 'waiting_connection']) }),
-  document_import_failed: z.object({ reason: z.enum(['cancelled', 'duplicate', 'validation', 'network_or_server']) }),
+  document_import_failed: z.object({ reason: z.enum(['cancelled', 'duplicate', 'validation', 'local_format', 'network_or_server']) }),
   verification_completed: z.object({ reminderRequested: z.boolean() }),
   action_completed: z.object({ kind: z.literal('action') }),
   deadline_completed_on_time: z.object({}),

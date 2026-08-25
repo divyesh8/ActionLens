@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { requireSupabaseClient } from '@/services/supabase/client';
 import { getCached, putCached } from '@/services/storage/offlineCache';
 import { documentAnalysisSchema } from '@/services/ai/analysisSchema';
+import { processAndPersistLocally } from '@/services/ai/localProcessingService';
 import { cancelDocumentReminders } from '@/services/notifications/notificationService';
 import { logger } from '@/services/logging/logger';
 import { normalizeVerifiedDate } from '@/utils/dateNormalization';
@@ -112,11 +113,24 @@ export function useSetActionWaiting(userId: string, documentId: string) {
 
 export async function retryDocumentProcessing(userId: string, documentId: string) {
   const supabase = requireSupabaseClient();
-  const { data: job, error } = await supabase.from('processing_jobs').select('id').eq('document_id', documentId).eq('user_id', userId).order('created_at', { ascending: false }).limit(1).single();
-  if (error) throw error;
-  await supabase.from('documents').update({ status: 'queued', status_message: null }).eq('id', documentId).eq('user_id', userId);
-  const { error: invokeError } = await supabase.functions.invoke('process-document', { body: { documentId, jobId: job.id } });
-  if (invokeError) throw invokeError;
+  const [documentResult, jobResult] = await Promise.all([
+    supabase.from('documents').select('storage_path, original_filename, mime_type').eq('id', documentId).eq('user_id', userId).single(),
+    supabase.from('processing_jobs').select('id, attempt_count').eq('document_id', documentId).eq('user_id', userId).order('created_at', { ascending: false }).limit(1).single(),
+  ]);
+  if (documentResult.error) throw documentResult.error;
+  if (jobResult.error) throw jobResult.error;
+  if (!documentResult.data.storage_path) throw new Error('The original file is unavailable.');
+  const { data: source, error: downloadError } = await supabase.storage.from('documents').download(documentResult.data.storage_path);
+  if (downloadError || !source) throw downloadError ?? new Error('The original file could not be downloaded.');
+  await processAndPersistLocally({
+    userId,
+    documentId,
+    jobId: jobResult.data.id,
+    bytes: await source.arrayBuffer(),
+    fileName: documentResult.data.original_filename ?? 'document',
+    mimeType: documentResult.data.mime_type,
+    attemptCount: jobResult.data.attempt_count,
+  });
 }
 
 export async function getOriginalSignedUrl(userId: string, documentId: string): Promise<string> {

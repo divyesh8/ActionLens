@@ -4,10 +4,11 @@ import * as Network from 'expo-network';
 import { Platform } from 'react-native';
 
 import { requireSupabaseClient } from '@/services/supabase/client';
+import { processAndPersistLocally, safeLocalProcessingMessage } from '@/services/ai/localProcessingService';
 import { addPendingIngestion, listPendingIngestions, removePendingIngestion, type PendingIngestion } from '@/services/storage/offlineCache';
 import type { ImportSource } from './captureService';
 
-export type IngestionStage = 'preparing' | 'checking_duplicate' | 'uploading' | 'queueing' | 'processing' | 'waiting_connection';
+export type IngestionStage = 'preparing' | 'checking_duplicate' | 'uploading' | 'queueing' | 'reading_locally' | 'analyzing_locally' | 'saving_results' | 'waiting_connection';
 type StageListener = (stage: IngestionStage) => void;
 
 export class DuplicateDocumentError extends Error {
@@ -101,6 +102,7 @@ export async function ingestDocument(options: { userId: string; input: Ingestion
   let documentId: string | undefined;
   let storagePath: string | undefined;
   let temporaryUploadFile: File | undefined;
+  let localProcessingStarted = false;
   onStage?.('preparing');
   throwIfCancelled(signal);
   if (!(await hasConnection())) {
@@ -173,15 +175,21 @@ export async function ingestDocument(options: { userId: string; input: Ingestion
     if (queuedError) throw queuedError;
     throwIfCancelled(signal);
 
-    onStage?.('processing');
-    const { error: invokeError } = await supabase.functions.invoke('process-document', { body: { documentId, jobId } });
-    if (invokeError) {
-      await Promise.all([
-        supabase.from('documents').update({ status: 'failed', status_message: 'Processing could not start. Try again.' }).eq('id', documentId).eq('user_id', userId),
-        supabase.from('processing_jobs').update({ stage: 'failed', safe_error_message: 'Processing could not start. Try again.', finished_at: new Date().toISOString() }).eq('id', jobId).eq('user_id', userId),
-      ]);
-      throw invokeError;
-    }
+    localProcessingStarted = true;
+    onStage?.('reading_locally');
+    await processAndPersistLocally({
+      userId,
+      documentId,
+      jobId,
+      bytes: source.bytes,
+      fileName: source.name,
+      mimeType: source.mimeType,
+      ...(signal ? { signal } : {}),
+      onProgress: (processingStage, fraction) => {
+        if (processingStage === 'reading') onStage?.('reading_locally');
+        else onStage?.(fraction >= 1 ? 'saving_results' : 'analyzing_locally');
+      },
+    });
     return { status: 'processing', documentId };
   } catch (error) {
     if (signal?.aborted && !(error instanceof IngestionCancelledError)) error = new IngestionCancelledError('Import cancelled.');
@@ -189,7 +197,8 @@ export async function ingestDocument(options: { userId: string; input: Ingestion
       await supabase.storage.from('documents').remove([storagePath]);
       await supabase.from('documents').delete().eq('id', documentId).eq('user_id', userId);
     } else if (documentId) {
-      await supabase.from('documents').update({ status: 'failed', status_message: 'Import did not finish. Try again.' }).eq('id', documentId).eq('user_id', userId);
+      const statusMessage = localProcessingStarted ? safeLocalProcessingMessage(error) : 'Import did not finish. Try again.';
+      await supabase.from('documents').update({ status: 'failed', status_message: statusMessage }).eq('id', documentId).eq('user_id', userId);
     }
     throw error;
   } finally {
