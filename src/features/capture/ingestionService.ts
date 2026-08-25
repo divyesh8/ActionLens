@@ -45,6 +45,12 @@ async function readInput(input: IngestionInput): Promise<{ bytes: ArrayBuffer; n
     const name = input.name ?? `pasted-text-${new Date().toISOString().slice(0, 10)}.txt`;
     return { bytes: new TextEncoder().encode(input.text).buffer, name, mimeType: 'text/plain', title: 'Pasted text', fileUri: null };
   }
+  if (Platform.OS === 'web') {
+    const bytes = input.source.webFile
+      ? await input.source.webFile.arrayBuffer()
+      : await (await fetch(input.source.uri)).arrayBuffer();
+    return { bytes, name: input.source.name, mimeType: input.source.mimeType, title: titleFromName(input.source.name), fileUri: input.source.uri };
+  }
   const file = new File(input.source.uri);
   return { bytes: await file.arrayBuffer(), name: input.source.name, mimeType: input.source.mimeType, title: titleFromName(input.source.name), fileUri: input.source.uri };
 }

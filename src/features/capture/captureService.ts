@@ -13,6 +13,7 @@ export type ImportSource = {
   mimeType: string;
   size: number;
   origin: 'camera' | 'photo' | 'file';
+  webFile?: Blob;
 };
 
 export class CaptureValidationError extends Error {}
@@ -36,9 +37,16 @@ function validateSource(source: ImportSource): ImportSource {
 }
 
 function imageSource(asset: ImagePicker.ImagePickerAsset, origin: 'camera' | 'photo'): ImportSource {
-  const file = new File(asset.uri);
   const name = asset.fileName ?? `${origin}-${Date.now()}.jpg`;
-  return validateSource({ uri: asset.uri, name, mimeType: asset.mimeType ?? mimeFromName(name) ?? 'image/jpeg', size: asset.fileSize ?? file.size, origin });
+  const size = asset.fileSize ?? asset.file?.size ?? new File(asset.uri).size;
+  return validateSource({
+    uri: asset.uri,
+    name,
+    mimeType: asset.mimeType ?? mimeFromName(name) ?? 'image/jpeg',
+    size,
+    origin,
+    ...(asset.file ? { webFile: asset.file } : {}),
+  });
 }
 
 export async function takeDocumentPhoto(): Promise<ImportSource | null> {
@@ -56,13 +64,20 @@ export async function pickDocumentPhoto(): Promise<ImportSource | null> {
 }
 
 export async function pickDocumentFile(): Promise<ImportSource | null> {
-  const result = await DocumentPicker.getDocumentAsync({ type: Array.from(supportedMimeTypes), copyToCacheDirectory: true, multiple: false });
+  const result = await DocumentPicker.getDocumentAsync({ type: Array.from(supportedMimeTypes), copyToCacheDirectory: true, multiple: false, base64: false });
   if (result.canceled || !result.assets[0]) return null;
   const asset = result.assets[0];
-  const file = new File(asset.uri);
   const mimeType = asset.mimeType ?? mimeFromName(asset.name);
   if (!mimeType) throw new CaptureValidationError('ActionLens could not identify this file type. Choose a PDF, image, or text file.');
-  return validateSource({ uri: asset.uri, name: asset.name, mimeType, size: asset.size ?? file.size, origin: 'file' });
+  const size = asset.size ?? asset.file?.size ?? new File(asset.uri).size;
+  return validateSource({
+    uri: asset.uri,
+    name: asset.name,
+    mimeType,
+    size,
+    origin: 'file',
+    ...(asset.file ? { webFile: asset.file } : {}),
+  });
 }
 
 export function validatePastedText(value: string): string {
