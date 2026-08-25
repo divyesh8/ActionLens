@@ -1,0 +1,20 @@
+diff --git a/client.js b/client.js
+index 02e6e22500db18a8e0d21405702da8530ab3ef9a..366867b04aed3df9e0c353edd4e8bc4e745aab21 100644
+--- a/client.js
++++ b/client.js
+@@ -1,4 +1,5 @@
+ 'use strict';
++// Keep this package entry materialized for Metro on Windows/OneDrive.
+ 
+ function checkDCE() {
+   /* global __REACT_DEVTOOLS_GLOBAL_HOOK__ */
+diff --git a/index.js b/index.js
+index 973f373e461a4a6fc9fc12c4220b7aa36220eddc..2ceb0473de766bfb2896f198392153c496cfe4a6 100644
+--- a/index.js
++++ b/index.js
+@@ -1,4 +1,5 @@
+ 'use strict';
++// Keep this package entry materialized for Metro on Windows/OneDrive.
+ 
+ function checkDCE() {
+   /* global __REACT_DEVTOOLS_GLOBAL_HOOK__ */

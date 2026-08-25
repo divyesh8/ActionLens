@@ -1,0 +1,7 @@
+diff --git a/src/location/install.ts b/src/location/install.ts
+index e69de29bb2d1d6434b8b29ae775ad8c2e48c5391..a7af5324adeb5abb898f943425fd928184a43073 100644
+--- a/src/location/install.ts
++++ b/src/location/install.ts
+@@ -0,0 +1,2 @@
++// Intentionally empty on web. Keeping a non-zero source file lets Metro's
++// Windows resolver recognize the platform fallback.

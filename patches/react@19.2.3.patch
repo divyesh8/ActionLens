@@ -1,0 +1,72 @@
+diff --git a/compiler-runtime.js b/compiler-runtime.js
+index ab6aabb0a98a339ea0c65ed8e59e255f23775f26..db3834328559bd5a7e234dbaa71c3494a305f8d1 100644
+--- a/compiler-runtime.js
++++ b/compiler-runtime.js
+@@ -6,6 +6,7 @@
+  */
+ 
+ 'use strict';
++// Keep this package entry materialized for Metro on Windows/OneDrive.
+ 
+ if (process.env.NODE_ENV === 'production') {
+   module.exports = require('./cjs/react-compiler-runtime.production.js');
+diff --git a/index.js b/index.js
+index d830d7a2f9f7f0649af7f5b6727206b2bbd4f93b..ce6ef2b7e81c86c76ad4fbe0b0b7558f810e4022 100644
+--- a/index.js
++++ b/index.js
+@@ -1,4 +1,5 @@
+ 'use strict';
++// Keep this package entry materialized for Metro on Windows/OneDrive.
+ 
+ if (process.env.NODE_ENV === 'production') {
+   module.exports = require('./cjs/react.production.js');
+diff --git a/jsx-dev-runtime.js b/jsx-dev-runtime.js
+index 0a80857d2d65a01ad35d2b11218db6d796a5e104..7b1b1ae09f5da6dd9ae9c142da5a3c5a1bc3aba2 100644
+--- a/jsx-dev-runtime.js
++++ b/jsx-dev-runtime.js
+@@ -1,4 +1,5 @@
+ 'use strict';
++// Keep this package entry materialized for Metro on Windows/OneDrive.
+ 
+ if (process.env.NODE_ENV === 'production') {
+   module.exports = require('./cjs/react-jsx-dev-runtime.production.js');
+diff --git a/jsx-dev-runtime.react-server.js b/jsx-dev-runtime.react-server.js
+index d11e6e82d068da6187e5770abfbd9666842f3dda..afd559ac2c527d87cce52c75d198a1fdcdc2ba2b 100644
+--- a/jsx-dev-runtime.react-server.js
++++ b/jsx-dev-runtime.react-server.js
+@@ -1,4 +1,5 @@
+ 'use strict';
++// Keep this package entry materialized for Metro on Windows/OneDrive.
+ 
+ if (process.env.NODE_ENV === 'production') {
+   module.exports = require('./cjs/react-jsx-dev-runtime.react-server.production.js');
+diff --git a/jsx-runtime.js b/jsx-runtime.js
+index 8679b72159b9cc249283d4a935c59d4ebd592864..9ce06ba99b443d57dfe6c8e87e91c0a349b03033 100644
+--- a/jsx-runtime.js
++++ b/jsx-runtime.js
+@@ -1,4 +1,5 @@
+ 'use strict';
++// Keep this package entry materialized for Metro on Windows/OneDrive.
+ 
+ if (process.env.NODE_ENV === 'production') {
+   module.exports = require('./cjs/react-jsx-runtime.production.js');
+diff --git a/jsx-runtime.react-server.js b/jsx-runtime.react-server.js
+index 2d23c8c3442feb4c54bb924097bfa08948df5784..f22f6f5df370d9f57b88ab864aa075e61ab75ecb 100644
+--- a/jsx-runtime.react-server.js
++++ b/jsx-runtime.react-server.js
+@@ -1,4 +1,5 @@
+ 'use strict';
++// Keep this package entry materialized for Metro on Windows/OneDrive.
+ 
+ if (process.env.NODE_ENV === 'production') {
+   module.exports = require('./cjs/react-jsx-runtime.react-server.production.js');
+diff --git a/react.react-server.js b/react.react-server.js
+index c66e3b76365d7fa06f5f30614ebcc9b813ca8b44..66f51fdaee08013f04a5b686897326516a15abde 100644
+--- a/react.react-server.js
++++ b/react.react-server.js
+@@ -1,4 +1,5 @@
+ 'use strict';
++// Keep this package entry materialized for Metro on Windows/OneDrive.
+ 
+ if (process.env.NODE_ENV === 'production') {
+   module.exports = require('./cjs/react.react-server.production.js');

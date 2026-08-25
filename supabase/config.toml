@@ -1,0 +1,10 @@
+project_id = "actionlens"
+
+[functions.process-document]
+verify_jwt = true
+
+[functions.delete-document]
+verify_jwt = true
+
+[functions.delete-account]
+verify_jwt = true
