@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outputRoot = path.join(projectRoot, 'public', 'local-ocr');
 
-const packageRoot = (name) => path.dirname(import.meta.resolve(`${name}/package.json`).replace('file:///', '').replaceAll('/', path.sep));
+const packageRoot = (name) => path.dirname(fileURLToPath(import.meta.resolve(`${name}/package.json`)));
 
 const tesseractRoot = packageRoot('tesseract.js');
 const coreRoot = packageRoot('tesseract.js-core');
