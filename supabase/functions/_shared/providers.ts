@@ -1,5 +1,7 @@
 import type { DocumentAnalysis, OCRResult } from './analysisSchema.ts';
-import { analyzeDocument, extractOCR } from './openai.ts';
+import { AIProviderRequestError, analyzeDocument, extractOCR } from './openai.ts';
+
+export { AIProviderRequestError } from './openai.ts';
 
 export type ProviderResult<T> = {
   result: T;

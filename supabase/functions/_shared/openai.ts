@@ -17,6 +17,26 @@ type StructuredCall = {
   promptCacheKey: string;
 };
 
+export class AIProviderRequestError extends Error {
+  constructor(
+    readonly status: number,
+    readonly requestId: string | null,
+    readonly code: string | null,
+    readonly type: string | null,
+  ) {
+    super(`AI provider request failed (${status}).`);
+    this.name = 'AIProviderRequestError';
+  }
+}
+
+function safeProviderErrorField(payload: unknown, field: 'code' | 'type'): string | null {
+  if (typeof payload !== 'object' || payload === null) return null;
+  const error = Reflect.get(payload, 'error');
+  if (typeof error !== 'object' || error === null) return null;
+  const value = Reflect.get(error, field);
+  return typeof value === 'string' && /^[a-z0-9_.-]{1,80}$/i.test(value) ? value : null;
+}
+
 function outputText(response: unknown): string {
   if (typeof response !== 'object' || response === null) throw new Error('AI provider returned an invalid response.');
   const output = Reflect.get(response, 'output');
@@ -55,7 +75,14 @@ async function callStructured(options: StructuredCall): Promise<{ value: unknown
   });
   const requestId = response.headers.get('x-request-id');
   const payload: unknown = await response.json();
-  if (!response.ok) throw new Error(`AI provider request failed (${response.status}).`);
+  if (!response.ok) {
+    throw new AIProviderRequestError(
+      response.status,
+      requestId,
+      safeProviderErrorField(payload, 'code'),
+      safeProviderErrorField(payload, 'type'),
+    );
+  }
   const raw = JSON.parse(outputText(payload)) as unknown;
   const usageValue = typeof payload === 'object' && payload !== null ? Reflect.get(payload, 'usage') : null;
   const input = typeof usageValue === 'object' && usageValue !== null && typeof Reflect.get(usageValue, 'input_tokens') === 'number' ? Reflect.get(usageValue, 'input_tokens') as number : null;

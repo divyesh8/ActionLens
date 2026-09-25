@@ -79,6 +79,9 @@ importers:
       expo-notifications:
         specifier: ~57.0.14
         version: 57.0.14(expo@57.0.16)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.3(patch_hash=5e680e9dd960db4311d94063dc0c566f3a5cac899ba77f1891e477feac18893f))(supports-color@8.1.1))(react@19.2.3(patch_hash=5e680e9dd960db4311d94063dc0c566f3a5cac899ba77f1891e477feac18893f))(supports-color@8.1.1)(typescript@6.0.3)
+      expo-ocr-kit:
+        specifier: 0.1.4
+        version: 0.1.4(expo@57.0.16)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.3(patch_hash=5e680e9dd960db4311d94063dc0c566f3a5cac899ba77f1891e477feac18893f))(supports-color@8.1.1))(react@19.2.3(patch_hash=5e680e9dd960db4311d94063dc0c566f3a5cac899ba77f1891e477feac18893f))
       expo-router:
         specifier: ~57.0.16
         version: 57.0.16(5a61ef27f871fb672a2b7b89059b085a)
@@ -2428,6 +2431,13 @@ packages:
 
   expo-notifications@57.0.14:
     resolution: {integrity: sha512-YDTW6vUEF1NnBwdXLJTaUbk+ZgtFCO3qIEaNkrXV56U+az2a5GBRgTnqGUI3ts7tR3oDthJVa/0UBn52f7ngsA==}
+    peerDependencies:
+      expo: '*'
+      react: '*'
+      react-native: '*'
+
+  expo-ocr-kit@0.1.4:
+    resolution: {integrity: sha512-PyW2DjFFPM3PJptAsp8kqCqM9Qx2mg/V9Pugo7oORcJ1A+/pood1Z6qx/JOdzyP91k8YIbAvD5PJt9zR2vetcA==}
     peerDependencies:
       expo: '*'
       react: '*'
@@ -6989,6 +6999,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
       - typescript
+
+  expo-ocr-kit@0.1.4(expo@57.0.16)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.3(patch_hash=5e680e9dd960db4311d94063dc0c566f3a5cac899ba77f1891e477feac18893f))(supports-color@8.1.1))(react@19.2.3(patch_hash=5e680e9dd960db4311d94063dc0c566f3a5cac899ba77f1891e477feac18893f)):
+    dependencies:
+      expo: 57.0.16(2db8848118097cad6e044f2a622e74c8)
+      react: 19.2.3(patch_hash=5e680e9dd960db4311d94063dc0c566f3a5cac899ba77f1891e477feac18893f)
+      react-native: 0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.3(patch_hash=5e680e9dd960db4311d94063dc0c566f3a5cac899ba77f1891e477feac18893f))(supports-color@8.1.1)
 
   expo-router@57.0.16(5a61ef27f871fb672a2b7b89059b085a):
     dependencies:

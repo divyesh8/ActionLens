@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { AppText } from '@/design-system/AppText';
 import { Button } from '@/design-system/Button';
@@ -11,12 +11,13 @@ import { radii, spacing, typography } from '@/design-system/tokens';
 import { useAppTheme } from '@/design-system/theme';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { CaptureValidationError, pickDocumentFile, pickDocumentPhoto, takeDocumentPhoto, validatePastedText } from '@/features/capture/captureService';
-import { DuplicateDocumentError, ingestDocument, IngestionCancelledError, type IngestionStage } from '@/features/capture/ingestionService';
+import { DuplicateDocumentError, ingestDocument, IngestionCancelledError, IngestionPreparationError, type IngestionStage } from '@/features/capture/ingestionService';
 import { LocalProcessingUnavailableError } from '@/services/ai/localDocumentProcessor';
+import { RemoteProcessingError } from '@/services/ai/remoteProcessingService';
 import { useCaptureStore } from '@/store/captureStore';
 import { trackAnalyticsEvent } from '@/services/analytics/analyticsService';
 
-const stageLabel: Record<IngestionStage, string> = { preparing: 'Preparing document', checking_duplicate: 'Checking your vault', uploading: 'Uploading securely', queueing: 'Preparing local analysis', reading_locally: 'Reading on this device', analyzing_locally: 'Analyzing on this device', saving_results: 'Saving your results', waiting_connection: 'Saving for later' };
+const stageLabel: Record<IngestionStage, string> = { preparing: 'Preparing document', checking_duplicate: 'Checking your vault', uploading: 'Uploading securely', queueing: 'Preparing analysis', reading_locally: 'Reading on this device', analyzing_locally: 'Analyzing on this device', saving_results: 'Saving your results', processing_remotely: 'Reading and analyzing securely', waiting_connection: 'Saving for later' };
 const options = [
   { key: 'camera', title: 'Camera', detail: 'Photograph a notice or letter', icon: 'camera-outline' },
   { key: 'photo', title: 'Photo', detail: 'Choose a screenshot or image', icon: 'image-outline' },
@@ -70,6 +71,8 @@ export default function CaptureScreen() {
       if (reason instanceof DuplicateDocumentError) { setDuplicateId(reason.documentId); setError(reason.message); void trackAnalyticsEvent(session.user.id, 'document_import_failed', { reason: 'duplicate' }); }
       else if (reason instanceof IngestionCancelledError) { setError('Import cancelled. Nothing was saved.'); void trackAnalyticsEvent(session.user.id, 'document_import_failed', { reason: 'cancelled' }); }
       else if (reason instanceof LocalProcessingUnavailableError) { setError(reason.message); void trackAnalyticsEvent(session.user.id, 'document_import_failed', { reason: 'local_format' }); }
+      else if (reason instanceof RemoteProcessingError) { setError(reason.message); void trackAnalyticsEvent(session.user.id, 'document_import_failed', { reason: 'network_or_server' }); }
+      else if (reason instanceof IngestionPreparationError) { setError(reason.message); void trackAnalyticsEvent(session.user.id, 'document_import_failed', { reason: 'validation' }); }
       else if (reason instanceof CaptureValidationError) { setError(reason.message); void trackAnalyticsEvent(session.user.id, 'document_import_failed', { reason: 'validation' }); }
       else { setError('The import did not finish. Your source was not silently processed—check your connection and try again.'); void trackAnalyticsEvent(session.user.id, 'document_import_failed', { reason: 'network_or_server' }); }
     }
@@ -78,7 +81,7 @@ export default function CaptureScreen() {
   return (
     <Screen keyboard>
       <View style={styles.header}><Pressable accessibilityRole="button" accessibilityLabel="Close" disabled={busy} onPress={() => router.back()} style={styles.close}><Ionicons name="close" size={25} color={colors.text} /></Pressable><View style={styles.headerCopy}><AppText variant="heading">Add to ActionLens</AppText><AppText variant="caption" color={colors.textMuted}>Choose one source</AppText></View></View>
-      {busy && stage ? <View style={styles.processing}><ActivityIndicator size="large" color={colors.accent} /><AppText variant="heading">{stageLabel[stage]}{stage === 'uploading' && uploadFraction > 0 ? ` ${Math.round(uploadFraction * 100)}%` : ''}</AppText><AppText color={colors.textMuted} align="center">OCR and analysis run inside this browser. No paid AI API or external model receives the document.</AppText><Button label="Cancel import" variant="secondary" onPress={() => abortController.current?.abort()} /></View> : <View style={styles.body}><View style={styles.options}>{options.map((option) => <Pressable key={option.key} accessibilityRole="button" onPress={() => { void choose(option.key); }}>{({ pressed }) => <Card style={[styles.option, { opacity: pressed ? 0.76 : 1 }]}><View style={[styles.optionIcon, { backgroundColor: colors.accentSoft }]}><Ionicons name={option.icon} size={24} color={colors.accent} /></View><View style={styles.optionCopy}><AppText variant="bodyStrong">{option.title}</AppText><AppText variant="caption" color={colors.textMuted}>{option.detail}</AppText></View><Ionicons name="chevron-forward" size={20} color={colors.textMuted} /></Card>}</Pressable>)}</View>
+      {busy && stage ? <View style={styles.processing}><ActivityIndicator size="large" color={colors.accent} /><AppText variant="heading">{stageLabel[stage]}{stage === 'uploading' && uploadFraction > 0 ? ` ${Math.round(uploadFraction * 100)}%` : ''}</AppText><AppText color={colors.textMuted} align="center">{Platform.OS === 'web' || stage === 'reading_locally' || stage === 'analyzing_locally' || stage === 'saving_results' ? 'OCR and analysis run on this device. No external AI model receives the document.' : 'The original is uploaded securely to your private vault before processing.'}</AppText><Button label="Cancel import" variant="secondary" onPress={() => abortController.current?.abort()} /></View> : <View style={styles.body}><View style={styles.options}>{options.map((option) => <Pressable key={option.key} accessibilityRole="button" onPress={() => { void choose(option.key); }}>{({ pressed }) => <Card style={[styles.option, { opacity: pressed ? 0.76 : 1 }]}><View style={[styles.optionIcon, { backgroundColor: colors.accentSoft }]}><Ionicons name={option.icon} size={24} color={colors.accent} /></View><View style={styles.optionCopy}><AppText variant="bodyStrong">{option.title}</AppText><AppText variant="caption" color={colors.textMuted}>{option.detail}</AppText></View><Ionicons name="chevron-forward" size={20} color={colors.textMuted} /></Card>}</Pressable>)}</View>
       {source ? <Card style={styles.selected}><Ionicons name="checkmark-circle" size={24} color={colors.success} /><View style={styles.optionCopy}><AppText variant="bodyStrong" numberOfLines={2}>{source.name}</AppText><AppText variant="caption" color={colors.textMuted}>{(source.size / 1024 / 1024).toFixed(1)} MB · {source.mimeType}</AppText></View></Card> : null}
       {textMode ? <View style={styles.textArea}><AppText variant="caption">Source text</AppText><TextInput multiline value={pastedText} onChangeText={setPastedText} placeholder="Paste the original notice, email, or message here…" placeholderTextColor={colors.textMuted} selectionColor={colors.accent} style={[styles.textInput, typography.body, { color: colors.text, backgroundColor: colors.surface, borderColor: colors.border }]} /></View> : null}
       {error ? <Card style={[styles.error, { backgroundColor: colors.dangerSoft, borderColor: colors.danger }]}><AppText variant="caption" color={colors.danger}>{error}</AppText>{duplicateId ? <Button label="Open existing document" variant="secondary" onPress={() => router.replace({ pathname: '/(app)/document/[id]', params: { id: duplicateId } })} /> : null}</Card> : null}

@@ -5,6 +5,7 @@ import * as Network from 'expo-network';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { flushPendingIngestions } from '@/features/capture/ingestionService';
 import { logger } from '@/services/logging/logger';
+import { hasActiveNetworkConnection } from '@/services/network/connectionState';
 
 export function OfflineSyncCoordinator() {
   const { session } = useAuth();
@@ -28,7 +29,7 @@ export function OfflineSyncCoordinator() {
     };
     void synchronize();
     const subscription = Network.addNetworkStateListener((state) => {
-      if (state.isConnected !== false && state.isInternetReachable !== false) void synchronize();
+      if (hasActiveNetworkConnection(state)) void synchronize();
     });
     return () => subscription.remove();
   }, [queryClient, session?.user.id]);

@@ -1,0 +1,50 @@
+# dependencies
+node_modules/
+
+# Expo and generated web output
+.expo/
+dist/
+web-build/
+/public/local-ocr/
+expo-env.d.ts
+
+# Generated native projects
+/ios/
+/android/
+
+# Local credentials and environment files
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+credentials.json
+
+# Local release artifacts and caches
+/release/*.apk
+.kotlin/
+.metro-health-check*
+*.tsbuildinfo
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Agent/editor metadata is not part of the mobile application. Some entries are
+# Windows junctions, which cannot be recreated in the EAS staging clone.
+/.agents/
+/.claude/
+/.windsurf/
+/skills-lock.json
+
+# Repository metadata and OS files
+/.git/
+.DS_Store
+*.orig.*
+
+# Generated application code
+/src/generated/prisma/

@@ -7,6 +7,7 @@ export type LocalProcessingInput = {
   bytes: ArrayBuffer;
   fileName: string;
   mimeType: string;
+  sourceUri?: string;
   signal?: AbortSignal;
   onProgress?: (stage: LocalProcessingStage, fraction: number) => void;
 };

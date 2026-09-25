@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 import { requireSupabaseClient } from '@/services/supabase/client';
 import { LocalProcessingUnavailableError, processDocumentLocally } from './localDocumentProcessor';
 import type { LocalProcessingStage } from './localDocumentProcessor.types';
@@ -9,6 +11,7 @@ type LocalPersistenceInput = {
   bytes: ArrayBuffer;
   fileName: string;
   mimeType: string;
+  sourceUri?: string;
   attemptCount?: number;
   signal?: AbortSignal;
   onProgress?: (stage: LocalProcessingStage, fraction: number) => void;
@@ -59,6 +62,7 @@ export async function processAndPersistLocally(input: LocalPersistenceInput): Pr
       bytes: input.bytes,
       fileName: input.fileName,
       mimeType: input.mimeType,
+      ...(input.sourceUri ? { sourceUri: input.sourceUri } : {}),
       ...(input.signal ? { signal: input.signal } : {}),
       ...(input.onProgress ? { onProgress: input.onProgress } : {}),
     });
@@ -81,8 +85,10 @@ export async function processAndPersistLocally(input: LocalPersistenceInput): Pr
     const extraction = await supabase.from('document_extractions').insert({
       document_id: input.documentId,
       user_id: input.userId,
-      provider: 'browser-local',
-      model: 'tesseract-7+rules-v1',
+      provider: Platform.OS === 'web' ? 'browser-local' : 'device-local',
+      model: input.mimeType === 'text/plain'
+        ? 'text-parser+rules-v1'
+        : Platform.OS === 'web' ? 'tesseract-7+rules-v1' : 'mlkit-latin-16.0.1+rules-v1',
       analysis: result.analysis,
       confidence: result.analysis.confidence,
       is_current: true,

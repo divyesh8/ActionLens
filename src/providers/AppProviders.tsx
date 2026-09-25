@@ -10,6 +10,7 @@ import { ActionLensThemeProvider } from '@/design-system/theme';
 import { AuthProvider } from '@/features/auth/AuthProvider';
 import { OfflineSyncCoordinator } from '@/features/capture/OfflineSyncCoordinator';
 import { initializeNotifications } from '@/services/notifications/notificationService';
+import { hasActiveNetworkConnection } from '@/services/network/connectionState';
 
 export function AppProviders({ children }: PropsWithChildren) {
   const [queryClient] = useState(() => new QueryClient({
@@ -20,8 +21,8 @@ export function AppProviders({ children }: PropsWithChildren) {
   }));
   useEffect(() => { void initializeNotifications(); }, []);
   useEffect(() => {
-    void Network.getNetworkStateAsync().then((state) => onlineManager.setOnline(state.isConnected !== false && state.isInternetReachable !== false));
-    const subscription = Network.addNetworkStateListener((state) => onlineManager.setOnline(state.isConnected !== false && state.isInternetReachable !== false));
+    void Network.getNetworkStateAsync().then((state) => onlineManager.setOnline(hasActiveNetworkConnection(state)));
+    const subscription = Network.addNetworkStateListener((state) => onlineManager.setOnline(hasActiveNetworkConnection(state)));
     return () => subscription.remove();
   }, []);
   return (

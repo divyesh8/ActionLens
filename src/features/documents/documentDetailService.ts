@@ -1,10 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Platform } from 'react-native';
 import { z } from 'zod';
 
 import { requireSupabaseClient } from '@/services/supabase/client';
 import { getCached, putCached } from '@/services/storage/offlineCache';
 import { documentAnalysisSchema } from '@/services/ai/analysisSchema';
 import { processAndPersistLocally } from '@/services/ai/localProcessingService';
+import { shouldProcessLocally } from '@/services/ai/processingRoute';
+import { processDocumentRemotely } from '@/services/ai/remoteProcessingService';
 import { cancelDocumentReminders } from '@/services/notifications/notificationService';
 import { logger } from '@/services/logging/logger';
 import { normalizeVerifiedDate } from '@/utils/dateNormalization';
@@ -119,6 +122,10 @@ export async function retryDocumentProcessing(userId: string, documentId: string
   ]);
   if (documentResult.error) throw documentResult.error;
   if (jobResult.error) throw jobResult.error;
+  if (!shouldProcessLocally(Platform.OS, documentResult.data.mime_type)) {
+    await processDocumentRemotely({ userId, documentId, jobId: jobResult.data.id });
+    return;
+  }
   if (!documentResult.data.storage_path) throw new Error('The original file is unavailable.');
   const { data: source, error: downloadError } = await supabase.storage.from('documents').download(documentResult.data.storage_path);
   if (downloadError || !source) throw downloadError ?? new Error('The original file could not be downloaded.');

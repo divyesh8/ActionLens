@@ -44,4 +44,7 @@ yarn-error.*
 /ios
 /android
 
+# local release artifacts
+/release/*.apk
+
 /src/generated/prisma

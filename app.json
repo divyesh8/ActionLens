@@ -3,7 +3,7 @@
     "name": "ActionLens",
     "slug": "actionlens",
     "scheme": "actionlens",
-    "version": "1.0.0",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -20,7 +20,11 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": true,
-      "package": "app.actionlens.mobile"
+      "package": "app.actionlens.mobile",
+      "versionCode": 4,
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -77,6 +81,18 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "headers": {
+          "Cross-Origin-Embedder-Policy": "credentialless",
+          "Cross-Origin-Opener-Policy": "same-origin"
+        }
+      },
+      "eas": {
+        "projectId": "d5e3eed8-233a-4cec-a41a-bf9f1491604f"
+      }
+    },
+    "owner": "divyesshh"
   }
 }

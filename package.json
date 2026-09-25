@@ -1,6 +1,6 @@
 {
   "name": "actionlens",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "main": "expo-router/entry",
   "dependencies": {
     "@expo/metro-runtime": "~57.0.13",
@@ -25,6 +25,7 @@
     "expo-localization": "~57.0.1",
     "expo-network": "~57.0.1",
     "expo-notifications": "~57.0.14",
+    "expo-ocr-kit": "0.1.4",
     "expo-router": "~57.0.16",
     "expo-secure-store": "~57.0.1",
     "expo-splash-screen": "~57.0.8",
@@ -62,8 +63,8 @@
   },
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "prepare:local-ocr": "node scripts/prepare-local-ocr.mjs",
     "web": "pnpm prepare:local-ocr && expo start --web --no-dev",
     "web:dev": "pnpm prepare:local-ocr && expo start --web",

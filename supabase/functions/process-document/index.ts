@@ -2,7 +2,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2.112.3';
 import { z } from 'npm:zod@4.4.3';
 
 import { corsHeaders, jsonResponse } from '../_shared/cors.ts';
-import { createOpenAIProviders } from '../_shared/providers.ts';
+import { AIProviderRequestError, createOpenAIProviders } from '../_shared/providers.ts';
 
 const requestSchema = z.object({ documentId: z.string().uuid(), jobId: z.string().uuid() });
 const MAX_SOURCE_BYTES = 6 * 1024 * 1024;
@@ -15,7 +15,13 @@ function toBase64(bytes: Uint8Array): string {
 
 function safeErrorMessage(error: unknown): string {
   if (error instanceof z.ZodError) return 'The analysis format was invalid. Try processing the document again.';
-  if (error instanceof Error && error.message.includes('AI provider')) return 'The document service is temporarily unavailable. Try again.';
+  if (error instanceof AIProviderRequestError) {
+    if (error.status === 400 || error.status === 413 || error.status === 422) return 'The document service could not read this source. Try a clearer JPG, PNG, plain-text file, or a smaller PDF.';
+    if (error.status === 401 || error.status === 403) return 'The document service is not configured correctly. Contact support.';
+    if (error.code === 'insufficient_quota') return 'The document service has no processing capacity configured. Contact support.';
+    if (error.status === 429) return 'The document service is busy. Try again in a few minutes.';
+    return 'The document service is temporarily unavailable. Try again.';
+  }
   return 'ActionLens could not finish processing this document. Try again.';
 }
 
@@ -134,7 +140,15 @@ Deno.serve(async (request) => {
     return jsonResponse({ documentId, status: 'awaiting_verification' });
   } catch (error) {
     const message = safeErrorMessage(error);
-    console.error('process-document failed', { requestId: request.headers.get('x-request-id'), errorName: error instanceof Error ? error.name : 'unknown', documentId, jobId });
+    console.error('process-document failed', {
+      requestId: request.headers.get('x-request-id'),
+      errorName: error instanceof Error ? error.name : 'unknown',
+      providerStatus: error instanceof AIProviderRequestError ? error.status : null,
+      providerCode: error instanceof AIProviderRequestError ? error.code : null,
+      providerType: error instanceof AIProviderRequestError ? error.type : null,
+      documentId,
+      jobId,
+    });
     if (admin && documentId && jobId && userId) {
       await Promise.all([
         admin.from('documents').update({ status: 'failed', status_message: message }).eq('id', documentId).eq('user_id', userId),
